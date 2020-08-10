@@ -1,0 +1,772 @@
+# -*- coding: utf-8 -*-
+# This file is released under the terms and conditions of
+# GNU AFFERO GENERAL PUBLIC LICENSE v.3
+# 
+
+"""
+math2py: a math web interface plugin for web2py
+    Copyright (C) 2011 Alan Etkin
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see http://www.gnu.org/licenses/
+"""
+
+
+#########################################################################
+# Much of the code in this controller file is adapted from web2py published
+# howto's and tutorials, by Massimo Di Pierro and others.
+#########################################################################
+
+import datetime
+import inspect
+import urllib
+import pickle
+import csv
+import math, random
+from gluon.contrib import simplejson as json
+mpmath = local_import("plugin_math2py/mpmath")
+tools = local_import("plugin_math2py/tools")
+
+def math_panel():
+    """ an ajax interface with math tools."""
+    # TODO gather functions and return a gui with
+    # commands and storage space
+    # use session.vstorage = {var1: x, var2: ..., varn: xn}
+    # and db table for vstorage records
+    function_list = []
+    # modules loop
+    counter = 0
+    for k in session.plugin_math2py_functions:
+        # functions loop
+        for j in session.plugin_math2py_functions[k]:
+            argstmp = \
+                cleanargs(session.plugin_math2py_functions[k][j]["args"])
+            # (index, module, function, arg_list, doc)
+            function_list.append(dict(\
+            number = counter, module = k, \
+            function=j, args=argstmp, \
+            doc=session.plugin_math2py_functions[k][j]["doc"]))
+            counter = counter + 1
+
+    return dict(plugin_math2py_pymathfunctions=session.plugin_math2py_functions)
+
+def solvestoredsystem():
+    latex = None
+    result = None
+    a = None
+    b = None
+    x = None
+
+    if session.plugin_math2py_amatrix:
+        try:
+            a = mpmath.matrix(session.plugin_math2py_amatrix[0])
+            b = mpmath.matrix(session.plugin_math2py_amatrix[1])
+            x = mpmath.lu_solve(a, b)
+            result = gclatexv(x.tolist())
+            latex = gclatexam(session.plugin_math2py_amatrix[0], \
+            session.plugin_math2py_amatrix[1])
+
+        except (IndexError, ValueError), e:
+            response.flash = str(e)
+
+    else:
+        response.flash = T("No matrices stored")
+
+    return dict(plugin_math2py_latex = latex, \
+    plugin_math2py_result = result, plugin_math2py_a = a, \
+    plugin_math2py_b = b, plugin_math2py_x = x)
+
+
+def solvesystem():
+    """ Solves a linear equation system based on browser ASCII
+    input 
+    """
+
+    # crear un formulario para envio y validación de entrada
+    # de datos
+    entrada_ascii = None
+    result = None
+    latex = None
+    a = None
+    b = None
+    x = None
+    
+    form = FORM(LABEL('Linear system'), BR(), TEXTAREA(_name='linear_system',
+    requires=IS_NOT_EMPTY()), BR(), LABEL("Save"),
+    INPUT(_name='save', _type="checkbox", _class="m2p_checkbox"), BR(),
+    LABEL("Name"), INPUT(_name='name'), BR(), INPUT(_type='submit'))
+    if form.accepts(request.vars, session, keepvalues = True):
+        # si se envió una matriz aumentada resolver el sistema con la app de rpc:
+        # separar ASCII en líneas
+        # convertir entrada de texto a nested list para mpmath
+        lstmp = request.vars.linear_system
+        if lstmp == None: lstmp = str()
+        entrada_ascii = lstmp.splitlines()
+        a = list()
+        b = list()
+        
+        for linea in entrada_ascii:
+            renglon = linea.split("|")
+            try:
+                a.append([mpmath.mpf(\
+                numero.strip()) for numero in renglon[0].split()])
+                b.append(mpmath.mpf(renglon[1].strip()))
+                
+            except (IndexError, ValueError), e:
+                response.flash = str(e)
+                return dict(form=form, result = result, \
+                latex = latex, \
+                a = a, b = b, x = x)
+                
+        a = mpmath.matrix(a)
+        b = mpmath.matrix(b)
+
+        session.plugin_math2py_amatrix = (a.tolist(), b.tolist())
+        
+        try:
+            x = mpmath.lu_solve(a, b)
+
+        except (ZeroDivisionError, ValueError, IndexError), e:
+            response.flash = str(e)
+
+        if x and (len(x) > 0):
+            latex = gclatexam(session.plugin_math2py_amatrix[0], \
+            session.plugin_math2py_amatrix[1])
+            result = gclatexv(x.tolist())
+            if len(latex) > 200:
+                response.flash = T(\
+                "Warning: maximum Google Chart LaTeX is 200")
+                
+        if request.vars.save and (auth.user):
+            db.plugin_math2py_amatrix.insert(a = pickle.dumps(\
+            session.plugin_math2py_amatrix[0]),
+            b = pickle.dumps(session.plugin_math2py_amatrix[1]), \
+            name = request.vars.name)
+        if not (auth.user) and request.vars.save:
+            response.flash = T("Please login to store matrices")
+
+    return dict(plugin_math2py_form=form, \
+    plugin_math2py_result = result, plugin_math2py_latex = latex, \
+    plugin_math2py_a = a, plugin_math2py_b = b, plugin_math2py_x = x)
+
+
+def randamatrix():
+    latex = None
+    a = None
+    b = None
+    form = FORM(LABEL("Rows"), INPUT(_name='rows',
+    requires=IS_INT_IN_RANGE(0, 100)),LABEL("Save"),
+    INPUT(_name='save', _type="checkbox", _class="m2p_checkbox"),
+    BR(), LABEL("Name"),  INPUT(_name='name'),
+    BR(), INPUT(_type='submit'))
+
+    if form.accepts(request.vars, session):
+        a = mpmath.randmatrix(int(request.vars.rows))
+        b = mpmath.randmatrix(m=int(request.vars.rows), n = 1)
+
+        session.plugin_math2py_amatrix = (a.tolist(), b.tolist())
+        latex = gclatexam(session.plugin_math2py_amatrix[0], \
+        session.plugin_math2py_amatrix[1])
+
+        if request.vars.save and (auth.user):
+            db.plugin_math2py_amatrix.insert(a = pickle.dumps(\
+            session.plugin_math2py_amatrix[0]),
+            b = pickle.dumps(session.plugin_math2py_amatrix[1]), \
+            name = request.vars.name)
+        if not (auth.user) and request.vars.save:
+            response.flash = T("Please login to store matrices")
+
+    return dict(plugin_math2py_form = form, plugin_math2py_a = a, \
+    plugin_math2py_b = b, plugin_math2py_latex = latex)
+
+
+def choleskyrand():    
+
+    latex = None
+    a = None
+    b = None
+    form = FORM(LABEL("Rows"), INPUT(_name='rows', \
+    requires=IS_INT_IN_RANGE(0, 100)),
+    BR(), LABEL("Save"),  INPUT(_name='save', _type="checkbox", \
+    _class="m2p_checkbox")
+    , BR(), LABEL("Name"),  INPUT(_name='name'), BR(), \
+    INPUT(_type='submit'))
+
+    if form.accepts(request.vars, session):
+        a = mpmath.eye(int(request.vars.rows)) + mpmath.hilbert(int(request.vars.rows))
+        b = mpmath.randmatrix(m=int(request.vars.rows), n = 1)
+        session.plugin_math2py_amatrix = (a.tolist(), b.tolist())
+        latex = gclatexam(session.plugin_math2py_amatrix[0], session.plugin_math2py_amatrix[1])
+
+        if request.vars.save and (auth.user):
+            db.plugin_math2py_amatrix.insert(a = pickle.dumps(session.plugin_math2py_amatrix[0]),
+            b = pickle.dumps(session.plugin_math2py_amatrix[1]), name = request.vars.name)
+        if not (auth.user) and request.vars.save:
+            response.flash = T("Please login to store matrices")
+
+    return dict(plugin_math2py_form = form, plugin_math2py_latex = latex, plugin_math2py_a = a, plugin_math2py_b = b)
+
+
+def gclatexam(a, b):
+
+    if a and (len(a) > 0):
+        latex = r"\left\{ \begin{array}{" + r"c"*len(a) + r"|" + r"c}"
+        for nro, item in enumerate(a):
+            for elemento in a[nro]:
+                latex += str(elemento) + "&"
+            latex += str(b[nro][0]) + r"\\"
+            
+        latex = latex[0: -2]
+        latex += r"\end{array} \right\}"
+        latex = urllib.quote(latex)
+        if len(latex) > 200:
+            response.flash = T("Warning: maximum Google Chart LaTeX is 200")
+
+    return latex
+
+
+def listlesystems():
+    return dict(plugin_math2py_list = SQLTABLE(db(db.plugin_math2py_amatrix).select(), plugin_math2py_linkto = URL('showamatrix')))
+
+
+def showamatrix():
+    # recurperar registro de la bbdd
+    amatrix = db(db.plugin_math2py_amatrix.id == int(request.args[1])).select().first()
+    # de-pickle de objetos A y b
+    a = pickle.loads(amatrix.a)
+    b = pickle.loads(amatrix.b)
+    session.plugin_math2py_amatrix = (a, b)
+    latex = gclatexam(a, b)
+    a = mpmath.matrix(a)
+    b = mpmath.matrix(b)
+    
+    return dict(plugin_math2py_a = a, plugin_math2py_b = b, plugin_math2py_latex = latex)
+
+
+def gclatexv(b):
+    latex = None
+    if b and (len(b) > 0):
+        latex = r"\left\{"
+        # for item in b[0]:
+        for item in b:
+            latex += str(item[0]) + "; "
+            
+        latex = latex[0: -2]
+        latex += r"\right\}"
+        latex = urllib.quote(latex)
+        if len(latex) > 200:
+            response.flash = T("Warning: maximum Google Chart LaTeX is 200")
+
+    return latex
+
+
+def savelastamatrix():
+    form = FORM(LABEL("Name"),  INPUT(_name='name'), INPUT(_type='submit'))
+    if form.accepts(request.vars, session):
+        if (auth.user) and (session.plugin_math2py_amatrix):
+            db.plugin_math2py_amatrix.insert(a = pickle.dumps(session.plugin_math2py_amatrix[0]),
+            b = pickle.dumps(session.plugin_math2py_amatrix[1]), name = request.vars.name)
+            response.flash = T("Matrix stored successfully")
+        elif (not auth.user):
+            response.flash = T("Please login to store matrices")
+        else: response.flash = T("No matrix available")
+
+    return dict(plugin_math2py_form = form)
+
+
+def solvecsvles():
+    a = []
+    b = []
+    # si el usuario no está logueado
+    csvtext = None
+    if not (auth.user):
+    # devolver un mensaje de error
+        response.flash = T("Please login to use CSV format")
+        return dict(form = None, csvtext = csvtext)
+    # crear objeto de bbdd con datos csv
+    form = crud.create(db.plugin_math2py_csvam)
+    if form.accepts(request.vars, session):
+        # recuperar el último registro
+        csvtext = db(db.plugin_math2py_csvam.created_by == auth.user_id).select().last().csv_data
+        if csvtext == None: csvtext = str()
+        for y, line in enumerate(csv.reader(csvtext.splitlines())):
+            a.append(list())
+            for x, element in enumerate(line):
+                try:
+                    if len(line) == (x +1):
+                        # b matrix
+                        b.append([mpmath.mpf(element)])
+                    else:
+                        # A matrix
+                        a[y].append(mpmath.mpf(element))
+                except ValueError, e:
+                    response.flash = str(e)
+                    return dict(form = form, csvtext = csvtext)
+
+        # almacenar la matriz en la bbdd
+        session.plugin_math2py_amatrix = (a, b)
+        return redirect('solvestoredsystem')                    
+    # resolver sistema
+    # devolver matriz y solución (html)
+    return dict(plugin_math2py_form = form, plugin_math2py_csvtext = csvtext)
+
+    
+def lestocsv():
+    csvout = ""
+    a = None
+    b = None
+    x = None
+    # devuelve el sistema almacenado
+    # en session con formato
+    # csv para descarga en el navegador
+    if session.plugin_math2py_amatrix:
+        # resolver el sistema
+        try:
+            for n, row in enumerate(session.plugin_math2py_amatrix[0]):
+                for item in row:
+                    csvout += str(item) + ", "
+                csvout += str(session.plugin_math2py_amatrix[1][n][0]) + "\n"
+
+        except (IndexError, ValueError), e:
+            response.flash = str(e)
+            redirect("index")
+
+    else:
+        response.flash = T("No system stored")
+        redirect("index")
+
+    return dict(plugin_math2py_csvout = csvout)
+
+
+def identify():
+    """ tries to convert from real number to a formula """
+    result = None
+    form = SQLFORM.factory(Field("number", type="double"))
+    if form.accepts(request.vars, session, keepvalues=True):
+        # result = mpmath.identify(mpmath.mpf(form.vars.number),
+        # constants={"pi": mpmath.pi, "e": mpmath.e,
+        # "sqrt(2)": mpmath.sqrt(2), "sqrt(3)": mpmath.sqrt(3)})
+        result = mpmath.identify(mpmath.mpf(form.vars.number))        
+        
+    return dict(plugin_math2py_form = form, plugin_math2py_result = result)
+
+#### math controller
+
+# static lists
+MODULES = ["math", "random", "mpmath", "tools", "PYBUILTINS"]
+BADWORDS = ["eval", "str", "unicode", "import", "\\", "exit", "open", "file",
+"def", "class", "return", "break", "continue", "yield", "while", "for",
+"close", "DAL", "db", "request", "response", "session", "__builtins__",
+"quit", "compile", "object", 'apply', 'basestring', 'buffer',
+'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'delattr',
+'dict', 'dir', 'eval', 'execfile', 'exit', 'file', 'getattr', 'globals',
+'hasattr', 'help', 'input', 'intern', 'isinstance', 'issubclass', 'iter',
+'locals', 'next', 'object', 'open', 'ord', 'print', 'property', 'quit',
+'raw_input', 'reload', 'repr', 'setattr', 'slice', 'staticmethod', 'str',
+'super', 'unichr', 'unicode', 'vars', '__import__']
+PYBUILTINS = ['abs', 'all', 'any', 'apply', 'basestring', 'bin', 'bool',
+'buffer', 'bytearray', 'bytes', 'callable', 'chr', 'classmethod', 'cmp',
+'coerce', 'compile', 'complex', 'copyright', 'credits', 'delattr', 'dict',
+'dir', 'divmod', 'enumerate', 'eval', 'execfile', 'exit', 'file', 'filter',
+'float', 'format', 'frozenset', 'getattr', 'globals', 'hasattr', 'hash', 'help',
+'hex', 'id', 'input', 'int', 'intern', 'isinstance', 'issubclass', 'iter',
+'len', 'license', 'list', 'locals', 'long', 'map', 'max', 'min', 'next',
+'object', 'oct', 'open', 'ord', 'pow', 'print', 'property', 'quit',
+'range', 'raw_input', 'reduce', 'reload', 'repr', 'reversed', 'round',
+'set', 'setattr', 'slice', 'sorted', 'staticmethod', 'str', 'sum',
+'super', 'tuple', 'type', 'unichr', 'unicode', 'vars', 'xrange', 'zip']
+module_filters = {
+    "math": [], "random": [], "mpmath": [],
+    "tools": ["current", "session"],
+    "PYBUILTINS": ['apply', 'basestring', 'buffer', 'bytearray',
+    'bytes', 'callable', 'chr', 'classmethod', "compile", 'copyright',
+    'delattr', 'dict', 'dir', 'format', 'enumerate', 'eval', 'execfile',
+    'exit', 'file', 'getattr', 'globals', 'hasattr', 'help', 'input',
+    'intern', 'isinstance', 'issubclass', 'iter', 'locals', 'next',
+    'object', 'open', 'ord', 'print', 'property', 'quit', 'range',
+    'reversed', 'xrange', 'raw_input', 'reload', 'repr', 'setattr',
+    'slice', 'staticmethod', 'str', 'super', 'unichr', 'unicode',
+    'vars', 'license', 'credits']
+    }
+
+""" This controller gives access to the standard math tools
+bundled with python 2.* and custom math2py tools
+TODO: custom math module import (db list)    
+"""    
+
+# local functions
+def cleanargs(args):
+    argstmp = []
+    if args:
+        for a in args:
+            if str(a) == "self": pass
+            else: argstmp.append(a)
+        args = argstmp
+    return argstmp
+
+def clean_pycode(pycode):
+    clean_code = None
+    for word in BADWORDS: pycode = pycode.replace(word, "")
+    clean_code = pycode
+    return clean_code
+
+def pysource(pycode):
+    pycodetmp = str(pycode).replace("{{", "").replace("}}", "")
+    value = eval(clean_pycode(pycodetmp))
+    return value
+
+def get_functions(value):
+    functions = dict()
+    for mod in MODULES:
+        functions[mod] = dict()
+        if mod == "PYBUILTINS": fdir = PYBUILTINS
+        else: fdir = dir(eval(mod))
+            
+        for f in fdir:
+            if not (f.startswith("_") or (f in module_filters[mod]) or f[0].isupper()):
+                if mod == "PYBUILTINS": fstring = "%s" % f
+                else:  fstring = "%s.%s" % (mod, f)
+                try:
+                    fc = eval(fstring)
+                except NameError:
+                    # function not present
+                    continue
+                try:
+                    # Generates an error in python 2.4
+                    # aspc = cleanargs(inspect.getargspec(fc).args)
+                    aspc = cleanargs(inspect.getargspec(fc))
+                except (ValueError, AttributeError, KeyError, TypeError), e:
+                # except TypeError:
+                    aspc = None
+                try:
+                    doc = fc.__doc__
+                except (ValueError, AttributeError, KeyError, TypeError):
+                # except AttributeError:                
+                    doc = None
+                functions[mod][f] = dict(args = aspc, doc = doc)
+    return functions
+
+def process_client_args():
+    return dict(plugin_math2py_args = convert_args(process_args(request.vars.args)))
+
+def process_args(value):
+    """ looks for values or sequences separated by ()"""
+    # value should be a string
+    value = str(value)
+    if value.startswith(","): value = value[1:]
+    arg = 0
+    sequences = []
+    skip = False
+    ispycode = False
+    resetispycode = False
+    # mark the beginning char index
+    # True for sequences
+    args = {arg:{"sequence": False, "initchar": 0},}
+    the_args = []
+    # explore string skipping
+    # the lambda expressions
+    for x, v in enumerate(value):
+    
+        # detect last character
+        if x < len(value): lastchar = False
+        else: lastchar = True
+        if not lastchar:
+            if value[x] == "{" and value[x+1] == "{":
+                ispycode = True
+                skip = True
+            if value[x] == "}" and value[x-1] == "}":
+                resetispycode = True
+        if ((v == ",") and (skip == False)):
+            arg +=1
+            args[arg] = dict(sequence = False, initchar = x)
+        if (v=="(") and (not ispycode):
+            args[arg]["sequence"] = True
+            skip = True
+            sequences.append(arg)
+        if (v==")") and (not ispycode):
+            skip = False
+        if resetispycode:
+            ispycode = False
+            resetispycode = False
+            skip = False
+
+    for x in args:
+        try:
+            valuetmp = value[args[x]["initchar"]:args[x+1]["initchar"]]
+        except KeyError:
+            valuetmp = value[args[x]["initchar"]:]
+        if valuetmp.startswith(","): valuetmp = valuetmp[1:]
+        the_args.append((valuetmp, args[x]["sequence"]))
+    # db.plugin_math2py_debugging.insert(msg="process_args: " + str(the_args))
+    return the_args
+
+def convertvalues(val):
+    # or detect embedded python source code
+    if str(val).replace(" ", "").startswith("[["):
+        return strtomatrix(val)
+    if str(val).replace(" ", "").startswith("{{"):
+        return pysource(val)
+    try: tmpval = int(val)
+    except (ValueError, TypeError), e:
+        try: tmpval = float(val)
+        except (ValueError, TypeError), f:
+            try: tmpval = complex(val)
+            except (ValueError, TypeError), g:
+                tmpval = None
+    # db.plugin_math2py_debugging.insert(msg="convertvalues: " + str(tmpval) )               
+    return tmpval
+
+def convert_args(args):
+    """ Receives a list of (str, bool)  tuples and
+    tries to convert to numbers or number tuples
+    """
+    tmpargs = []
+    if type(args) != list: raise TypeError("convert_args args is a list of \
+    (str, bool) tuples")
+    for a in args:
+        tmpsec = []
+        if a[1]: # sequence
+            for s in a[0].replace("(", "").replace(")", "").split(","):
+                tmpsec.append(convertvalues(s.strip()))
+            tmpargs.append(list(tmpsec)) # tmpargs.append(tuple(tmpsec))
+        else:
+            tmpargs.append(convertvalues(a[0].strip()))
+    # db.plugin_math2py_debugging.insert(msg="convert_args: " + str(tmpargs)    )        
+    return tmpargs
+
+def strtomatrix(text):
+    """ convert a text to matrix/vector."""
+    # input format: [[a1, ...an],... ] as string
+    # strip outer square brackets
+    rows = []
+    texttmp = str(text)[1:-1]
+    lastbeginning = None
+    # search for beginning brackets and store the index
+    for n, c in enumerate(texttmp):
+        if c == "[":
+            lastbeginning = n
+        elif (c == "]") and (lastbeginning is not None):
+            closing = n
+            # add the row without brackets
+            rows.append(texttmp[(lastbeginning +1):closing])
+    tmprows = []            
+    for n, r in enumerate(rows):
+        tmprows.append([])
+        for s in r.split():
+            tmprows[n].append(convertvalues(s))
+    # db.plugin_math2py_debugging.insert(msg="strtomatrix: " + str(tmprows) )           
+    return tmprows
+
+# actions
+
+def strtomatrixweb():
+    """ convert a text to matrix/vector."""
+    # input format: [[a1, ...an],... ] as string
+    # strip outer square brackets
+    rows = []
+    texttmp = str(request.vars["input"])[1:-1]
+    lastbeginning = None
+    # search for beginning brackets and store the index
+    for n, c in enumerate(texttmp):
+        if c == "[":
+            lastbeginning = n
+        elif (c == "]") and (lastbeginning is not None):
+            closing = n
+            # add the row without brackets
+            rows.append(texttmp[(lastbeginning +1):closing])
+    tmprows = []            
+    for n, r in enumerate(rows):
+        tmprows.append([])
+        for s in r.split():
+            tmprows[n].append(convertvalues(s))
+    return dict(plugin_math2py_tmprows = str(tmprows), plugin_math2py_rows = str(rows))
+
+
+def debug_function(mod=None, fn=None, msg=None, fnargs=None):
+    db.plugin_math2py_debugging.insert(mod_called=mod, fn_called=fn, msg=msg, fnargs=fnargs)
+    
+def pyfunction():
+    pymodule=pyfunction=pyargs=len_args=None
+    try:
+        if request.vars["pymodule"] in session.plugin_math2py_functions:
+            pymodule = request.vars["pymodule"]
+        else: pymodule = None
+        if request.vars["pyfunction"] in session.plugin_math2py_functions[pymodule]:
+            pyfunction = request.vars["pyfunction"]
+        else: pyfunction = None
+        pyargs = process_args(request.vars["pyargs"])
+        
+    except KeyError, e:
+        debug_function(pymodule, pyfunction, str(e), pyargs)
+        return dict(result = None, message=T("Error processing request") + \
+        ". " + str(e))
+        
+    try:
+        theargs = convert_args(pyargs)
+        if pymodule != "PYBUILTINS": functiontmp = eval("%s.%s" % (pymodule, pyfunction))
+        else: functiontmp = eval("%s" % pyfunction)
+        if (theargs[0]) or (theargs[0] == 0):
+            result = functiontmp(*theargs)
+        else:
+            result = functiontmp()
+
+        if type(result) in (tuple, list):
+            if len(result) == 1: result = result[0]
+            elif len(result) == 0: result = None
+            else:
+                if type(result[0]) in (tuple, list):
+                    # detect matrix
+                    if len(result[0]) > 0:
+                        mtxtmp = ""
+                        for l in result:
+                            mtxtmp += str(l) + "\n"
+                        mtxtmp = "(" + mtxtmp[:-1] + ")"
+                        db.plugin_math2py_debugging.insert(msg="mtxtmp: %s" % str(mtxtmp))
+                        result = mtxtmp
+
+        result = str(result).replace("[", "(").replace("]", ")").replace(")\n(", "), (")
+        # db.plugin_math2py_debugging.insert(msg="result: %s" % str(result))
+        return dict(plugin_math2py_result=result, plugin_math2py_message=None)
+
+    except (ValueError, KeyError, TypeError, IndexError, AttributeError,
+    SyntaxError, ZeroDivisionError, RuntimeError), e:
+        debug_function(str(pymodule), str(pyfunction), str(e), str(pyargs))
+        return dict(plugin_math2py_result = None, plugin_math2py_message=T("Function error. ") + str(e))
+
+def csvsend():
+    data = request.vars["data"].strip()
+    data = data.replace("(", "").replace(")", "")
+    filename = request.vars["filename"]
+    if not filename: filename = "data"
+    sheettmp = []
+    sheet = ""
+    for l in data.splitlines():
+        linetmp = []
+        for d in l.split(","):
+            linetmp += d.split()
+        sheettmp.append(linetmp)
+    for v in sheettmp:
+        for w in v:
+            sheet += str(w) + ", "
+        sheet = sheet[:-2] + "\n"
+    s_id = db.plugin_math2py_csv.insert(data=sheet, filename=filename)
+    return dict(plugin_math2py_url=URL(r=request, f="csvdata.csv", args=[s_id]))
+
+def storeindb():
+    data = request.vars["data"].strip()
+    name = request.vars["name"]
+    tmpnote = db.plugin_math2py_notepad.insert(data=data, name=name)
+    return dict(plugin_math2py_record=tmpnote)
+
+def getnotepad():
+    notepads = db(db.plugin_math2py_notepad.user == auth.user_id).select()
+    nptmp = []
+    for np in notepads:
+        nptmp.append([np.id, np.name, np.datetime, np.data])
+    return dict(plugin_math2py_notepad = nptmp)
+
+def csvdata():
+    record = db.plugin_math2py_csv[request.args[0]]
+    data = record.data
+    filename = record.filename
+    return dict(plugin_math2py_data=data, plugin_math2py_filename=filename)
+
+
+# plugin-wiki code by web2py team
+def latexconvert(expression):
+    """
+    ## Uses Google charting API to embed LaTeX 
+    """
+    return '<img src="http://chart.apis.google.com/chart?cht=tx&chl=%s" align="center"/>' % expression.replace('"','\"')
+# end of plugin-wiki code by web2py team
+
+def converttolatex():
+    # db.plugin_math2py_debugging.insert(msg="Expression: " + request.vars["plugin_math2py_latex_expression"])
+    latex_element = latexconvert(request.vars["plugin_math2py_latex_expression"])
+    # db.plugin_math2py_debugging.insert(msg="Element: " + str(latex_element))
+    return dict(plugin_math2py_latex_element = latex_element)
+
+# get system's available functions
+if session.get("plugin_math2py_functions", None) is None:
+    session.plugin_math2py_functions = get_functions(True)
+
+@auth.requires_login()
+def setup():
+    messages = []
+    manager_role = db(db.auth_group.role=="manager").select().first()
+
+    if manager_role is None:
+        manager_role_id = db.auth_group.insert(role="manager")
+        messages.append(T("New manager role added"))
+    else:
+        manager_role_id = manager_role.id
+
+    if db(db.auth_membership.group_id==manager_role_id).count() <= 0:
+        manager_id = db.auth_membership.insert(group_id=manager_role_id,
+                                               user_id=auth.user_id)
+        messages.append(T("You've been added to the manager group"))
+
+    default_options_set = db(db.plugin_math2py_option.user_id==None)
+
+    if default_options_set.count() <= 0:
+        for k, v in PLUGIN_MATH2PY_DEFAULT_OPTIONS.iteritems():
+            db.plugin_math2py_option.insert(name=k, type=v["type"],
+                                            value=pickle.dumps(v["value"]),
+                                            reserved=v["reserved"],
+                                            comment=v["comment"],
+                                            label=v["label"])
+
+    form_fields = []
+    default_options = db(db.plugin_math2py_option.user_id==None).select()
+
+    if auth.has_membership(role="manager"):
+        options = default_options
+    else:
+        user_options_set = db(db.plugin_math2py_option.user_id==auth.user_id)
+        if user_options_set.count() <= 0:
+            for default_option in default_options:
+                if not default_option.reserved:
+                    db.plugin_math2py_option.insert(user_id=auth.user_id,
+                                                    name=default_option.name,
+                                                    type=default_option.type,
+                                                    value=default_option.value,
+                                                    label=default_option.label,
+                                                    comment=default_option.comment)
+        options = user_options_set.select()
+
+    for option in options:
+        if option.value is None:
+            default = option.value
+        else:
+            default = pickle.loads(option.value)
+        form_fields.append(Field(option.name,
+                                 option.type,
+                                 default=default,
+                                 label=option.label,
+                                 comment=option.comment))
+
+    form = SQLFORM.factory(*form_fields)
+
+    if form.process(keepvalues=True).accepted:
+        if auth.has_membership(role="manager"):
+            user_id = None
+        else:
+            user_id = auth.user_id
+        for k, v in form.vars.iteritems():
+            option = db((db.plugin_math2py_option.name==k)&\
+                        (db.plugin_math2py_option.user_id==user_id)).select().first()
+            option.update_record(value=pickle.dumps(v))
+        plugin_math2py_options_setup()
+        response.flash = T("Done!")
+    return dict(messages=messages, form=form, options=session.plugin_math2py_options)
+

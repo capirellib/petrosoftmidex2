@@ -1,0 +1,12 @@
+{{extend 'layout.html'}}
+<!--{{for i in grid:}}-->
+{{=grid}}
+
+		  <!--LI(A(imagen.titulo, _href=URL('mostrar', args=imagen.id))-->
+<!--{{=grid[0][0]}}
+
+
+
+
+
+{{pass}}-->

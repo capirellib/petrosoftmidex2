@@ -1,0 +1,163 @@
+# -*- coding: utf-8 -*-
+# -------------------------------------------------------------------------
+# This is a sample controller
+# this file is released under public domain and you can use without limitations
+# -------------------------------------------------------------------------
+
+# ---- example index page ----
+
+def index():
+	 el_turno = db(db.turnos.cerrado==False).select(db.turnos.nroturno)[0]
+	 grid =  SQLFORM.grid(db.despachos.turno==el_turno)
+	 return dict(message=T('Aplicacion Nueva'), grid=grid)
+
+def despacho():
+	el_turno = db(db.turnos.cerrado==False).select(db.turnos.nroturno)[0]
+	headers={'despachos.nrodesp':'Des','despachos.horainicio':'Inicio', 'despachos.horafin':'Fin', 'despachos.pico':'N° Pico','despachos.volvta':'Volumen','despachos.facvta':'Pesos'}
+	fields =  (db.despachos.nrodesp,db.despachos.horainicio,db.despachos.horafin,db.despachos.pico,db.despachos.volvta,db.despachos.facvta)
+	#consul = db.despachos.turno==el_turno
+	consul = db.despachos.turno==el_turno
+	orden=~db.despachos.nrodesp
+	grid = SQLFORM.grid(consul,csv = False,
+						fields = fields,
+						headers = headers,
+						paginate =25,
+						deletable=False,
+						editable=False,
+						details=False,
+					    orderby=orden,)
+	
+	return dict(grid=grid)
+
+
+def imagen():
+	#CONSULTA DE DESPACHOS
+	el_turno = db(db.turnos.cerrado==False).select(db.turnos.nroturno)[0]
+	headers={'despachos.nrodesp':'Des','despachos.horainicio':'Inicio', 'despachos.horafin':'Fin', 'despachos.pico':'N° Pico','despachos.volvta':'Volumen','despachos.facvta':'Pesos'}
+	fields =  (db.despachos.nrodesp,db.despachos.horainicio,db.despachos.horafin,db.despachos.pico,db.despachos.volvta,db.despachos.facvta)
+	#consul = db.despachos.turno==el_turno
+	consul = db.despachos.turno==el_turno
+	id = db.despachos.nrodesp
+	orden=~db.despachos.nrodesp
+	grid = SQLFORM.grid(consul,csv = False,
+						fields = fields,
+						field_id = id,
+						searchable=False,
+						sortable=False,
+						headers = headers,
+						paginate =15,
+						deletable=False,
+						editable=False,
+						details=False,
+					    orderby=orden,)
+	#FIMAL CONSULTA DE DESPACHOS (grid)
+	
+	#ADMINISTRACION DE IMAGENES(imag)
+	imag1 =  db.executesql('select * from picos order by nropico')
+	
+	
+	for im in imag1:
+		imag=[imag1[0][1]:imag1[0][5]]
+		#*imag[imag1[im][1]=imag1[5]]
+	#imag={1:'Defectuoso.gif',2:'Anulado.gif'}
+		
+	#FINALIZAR ADMINISTRACION DE IMAGENES
+	
+	#CONSULTA DE PICOS
+	headers1={'prodview.nropico':'N.Picos','prodview.surtidor':'Surt.', 'prodview.manguera':'Mang.','prodview.descripcion':'Descripcion','prodview.preciocont':'Precio Uni', 'prodview.estado':'Estado'}
+	fields1 = (db.prodview.nropico,db.prodview.surtidor,db.prodview.manguera,db.prodview.descripcion,db.prodview.preciocont,db.prodview.estado)
+	#consul1 = db((db.picos.tanque==db.tanques.nrotanque)).select(db.picos.nropico)
+	#consul1 = db((db.picos.tanque==db.tanques.nrotanque)).select(db.picos.nropico,db.picos.surtidor,db.picos.manguera,db.producto.descripcion,db.picos.estado)
+	#consul1 =db.executesql('SELECT picos.nropico,picos.surtidor,picos.manguera,producto.descripcion,producto.preciocont,picos.estado FROM picos,tanques,producto WHERE picos.tanque=tanques.nrotanque and tanques.combustible=producto.nroprod;')
+	consul1 = db.prodview.nropico
+	orden1=db.prodview.nropico
+	id1=db.prodview.nropico
+	
+	pico = SQLFORM.grid(consul1,
+						csv = False,
+						searchable=False,
+						fields = fields1,
+						field_id = id1,
+						sortable=False,
+						headers = headers1,
+						paginate =16,
+						deletable=False,
+						editable=False,
+						details=False,
+					    orderby=orden1,)
+	#FIMAL CONSULTA DE DESPACHOS (pico)
+	
+	
+	return dict(grid=grid,imag=imag,pico=pico)
+
+
+
+
+
+def imagen2():
+	#s = db(db.picos.nesta=db.estima.nesta).select(db.picos.nesta,db.estima.estima)
+	#s=db.executesql('select picos.nesta,estima.estima from picos,estima where picos.nesta=estima.nesta')
+	filters  = (db.picos.nesta==db.estima.nesta)
+	headers = {'estima.estima':'','picos.nesta':''}
+	fields  =  (db.estima.estima,db.picos.nesta)
+	el_estima = SQLFORM.grid(filters,csv = False, fields = fields , headers = headers  , paginate = 2 ,
+						deletable=False,
+						editable=False,
+						details=False,
+						searchable=False,
+						selectable=None,
+						create=False,
+						sortable=False,
+						 )
+	return dict(message=T('Aplicacion Nueva'), grid=el_estima)
+
+
+
+
+# ---- API (example) -----
+@auth.requires_login()
+def api_get_user_email():
+    if not request.env.request_method == 'GET': raise HTTP(403)
+    return response.json({'status':'success', 'email':auth.user.email})
+
+# ---- Smart Grid (example) -----
+@auth.requires_membership('admin') # can only be accessed by members of admin groupd
+def grid():
+    response.view = 'generic.html' # use a generic view
+    tablename = request.args(0)
+    if not tablename in db.tables: raise HTTP(403)
+    grid = SQLFORM.smartgrid(db[tablename], args=[tablename], deletable=False, editable=False)
+    return dict(grid=grid)
+
+# ---- Embedded wiki (example) ----
+def wiki():
+    auth.wikimenu() # add the wiki to the menu
+    return auth.wiki() 
+
+# ---- Action for login/register/etc (required for auth) -----
+def user():
+    """
+    exposes:
+    http://..../[app]/default/user/login
+    http://..../[app]/default/user/logout
+    http://..../[app]/default/user/register
+    http://..../[app]/default/user/profile
+    http://..../[app]/default/user/retrieve_password
+    http://..../[app]/default/user/change_password
+    http://..../[app]/default/user/bulk_register
+    use @auth.requires_login()
+        @auth.requires_membership('group name')
+        @auth.requires_permission('read','table name',record_id)
+    to decorate functions that need access control
+    also notice there is http://..../[app]/appadmin/manage/auth to allow administrator to manage users
+    """
+    return dict(form=auth())
+
+# ---- action to server uploaded static content (required) ---
+@cache.action()
+def download():
+    """
+    allows downloading of uploaded files
+    http://..../[app]/default/download/[filename]
+    """
+    return response.download(request, db)

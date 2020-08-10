@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8">
+        
+    <title> Surtidores </title>
+
+    <!-- BOOSTRAP 4 -->
+    <link rel="stylesheet" href="https://bootswatch.com/4/materia/bootstrap.min.css"/>
+        
+    <link rel="icon" href="{{url_for('static',filename='images/icono19.ico')}}" type="image/png"/> 
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	
+  	<!-- FRAMEWORK BOOTSTRAP para el estilo de la pagina-->
+	  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+	  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    
+    <!-- Los iconos tipo Solid de Fontawesome-->
+    <link rel="stylesheet"  href="https://use.fontawesome.com/releases/v5.0.8/css/solid.css">
+    <script src="https://use.fontawesome.com/releases/v5.0.7/js/all.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.css">	
+  	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css">  
+  
+    
+
+    <!-- Nuestro css
+    <link rel="stylesheet" type="text/css" href="static/css/user-form.css"
+      th:href="@{/css/user-form.css}">-->
+    <!-- DATA TABLE -->
+    
+    {% block inicial %}    {% endblock %}  
+
+  </head>
+
+  <body>
+
+       <!-- NAVIGATION  -->
+       <nav class = "navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="#"> <font style = "vertical-align: heredar;"> <font style = "vertical-align: heredar;"> Contolador de Surtidores </font> </ fuente> </a>
+        <button class = "navbar-toggler" type = "button" data-toggle = "collapse" data-target = "# navbarColor01" aria-controls = "navbarColor01" aria-extended = "false" aria-label = "Navegación de palanca ">
+          <span class = "navbar-toggler-icon"> </span>
+        </button>
+      
+        <div class = "collapse navbar-collapse" id = "navbarColor01">
+          <ul class = "navbar-nav mr-auto">
+            <li class = "elemento de navegación activo">
+              <a class="nav-link" href="/"> <font style = "vertical-align: heredar;"> <font style = "vertical-align: heredar;"> Inicio </font> </font> <span class = "sr-only"> <font style = "vertical-align: heredar;"> <font style = "vertical-align: heredar;"> (Actual) </font> </font> > </a>
+            </li>
+            <li class = "nav-item">
+              <a class="nav-link" href="/despachos"> <font style = "vertical-align: heredar;"> <font style = "vertical-align: heredar;"> Despachos </font> </font> </a>
+            </li>
+            <li class = "nav-item">
+              <a class="nav-link" href="/webturnos""> <font style = "vertical-align: heredar;"> <font style = "vertical-align: heredar;"> Turnos </font> </font> </a>
+            </li>
+            <li class = "nav-item">
+              <a class="nav-link" href="#"> <font style = "vertical-align: heredar;"> <font style = "vertical-align: heredar;"> Precios </font> </ font > </a>
+            </li>
+            
+          </ul>
+          
+        </div>
+      </nav>
+
+    <div>
+     
+      <h2 align ='center'> {{turno}}     <progress max="10" value={{turno_activo/10}}></progress> </h2>
+      {% block body %}
+      
+      {% endblock %}
+    </div>
+
+    <!-- scripts -->
+      <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+      <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+      <script type="text/javascript">
+          $(document).ready(function() {
+          //Asegurate que el id que le diste a la tabla sea igual al texto despues del simbolo #
+                 $('#buscar2').DataTable(  
+                     {"language": {
+                        "sProcessing":    "Procesando...",
+                        "sLengthMenu":    "Mostrar _MENU_ registros",
+                        "sZeroRecords":   "No se encontraron resultados",
+                        "sEmptyTable":    "Ningún dato disponible en esta tabla",
+                        "sInfo":          "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                        "sInfoEmpty":     "Mostrando registros del 0 al 0 de un total de 0 registros",
+                        "sInfoFiltered":  "(filtrado de un total de _MAX_ registros)",
+                        "sInfoPostFix":   "",
+                        "sSearch":        "Buscar:",
+                        "sUrl":           "",
+                        "sInfoThousands":  ",",
+                        "sLoadingRecords": "Cargando...",
+                        "oPaginate": {
+                            "sFirst":    "Primero",
+                            "sLast":    "Último",
+                            "sNext":    "Siguiente",
+                            "sPrevious": "Anterior"
+                        },
+                        "oAria": {
+                            "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                            "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                                }
+                          }
+            },
+          )
+                                    });
+      </script>
+      <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+        
+            var url = 'http://127.0.0.1:4000'; 
+            fetch(url, { mode: 'no-cors'});
+            setInterval(function(){ fetch(url, { mode: 'no-cors'});}, 5000)();
+        
+        });
+        
+        </script>
+
+
+    <!-- footer -->
+    <div class="navbar navbar-expand-lg navbar-dark bg-primary">  
+      <a class="" href="http://www.petrosoft.com.ar/" style="float : rigth;">
+        <img src="{{url_for('static',filename='images/01.png')}}"/>
+        <div class="navbar-brand" style="float : rigth">
+          <p>  &#169; 2018 www.petrosoft.com.ar </p>
+        </div>  
+      </a>
+    </div>  
+    
+
+    {% block final %}
+    {% endblock %}
+
+    
+
+  </body>
+
+
+</html>

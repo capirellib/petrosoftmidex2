@@ -1,0 +1,34 @@
+    {% for iter in ddespa %}
+       
+    <div class="row">
+        <div class="col-md-10">  
+      
+        <div class="card">   
+            <div class="card card-body">
+            <form  class="form">
+            <dl>
+
+                <dt>Producto        : {{iter.producto.descripcion.upper()}} </dt>
+                <dt>Inicio          : {{iter.despachos.horainicio}} </dt>
+                <dt>Fin             : {{iter.despachos.horafin}}    </dt>
+                <dt>Pico Nro        : {{iter.picos.nropico}}        </dt>
+                <dt>Surtidor Nro    : {{iter.picos.surtidor}}       </dt>
+                <dt>Manguera Nro    : {{iter.picos.manguera}}       </dt>
+                <dt>Inicio Volumen  : {{iter.despachos.volinicial}} </dt>    
+                <dt>Final  Volumen  : {{iter.despachos.volfinal}}   </dt>    
+                <dt>Inicio Importe  : {{iter.despachos.factinicial}}</dt>    
+                <dt>Final  Importe  : {{iter.despachos.factfinal}}  </dt>    
+                <dt>Volumen Venta   : {{iter.despachos.volvta}}     </dt>    
+                <dt>Importe Venta   : {{iter.despachos.facvta}}     </dt> 
+
+            </dl> 
+                
+          
+            </form>
+           </div> 
+        </div>          
+    
+
+        </div>
+    </div>    
+    {% endfor %}

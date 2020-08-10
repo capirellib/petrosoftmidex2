@@ -1,0 +1,748 @@
+timestamp: 2019-01-13T12:36:50.671414
+CREATE TABLE "auth_user"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "first_name" CHAR(128),
+    "last_name" CHAR(128),
+    "email" CHAR(512),
+    "password" CHAR(512),
+    "registration_key" CHAR(512),
+    "reset_password_key" CHAR(512),
+    "registration_id" CHAR(512)
+);
+faked!
+timestamp: 2019-01-13T12:36:50.683342
+CREATE TABLE "auth_group"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "role" CHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-01-13T12:36:50.689201
+CREATE TABLE "auth_membership"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-01-13T12:36:50.694764
+CREATE TABLE "auth_permission"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  ,
+    "name" CHAR(512),
+    "table_name" CHAR(512),
+    "record_id" INTEGER
+);
+faked!
+timestamp: 2019-01-13T12:36:50.703534
+CREATE TABLE "auth_event"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "time_stamp" TIMESTAMP,
+    "client_ip" CHAR(512),
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "origin" CHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-01-13T12:36:50.710514
+CREATE TABLE "auth_cas"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "created_on" TIMESTAMP,
+    "service" CHAR(512),
+    "ticket" CHAR(512),
+    "renew" CHAR(1)
+);
+faked!
+timestamp: 2019-01-13T12:36:50.717662
+CREATE TABLE "producto"(
+    "nroprod" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "preciocred" DOUBLE,
+    "preciocont" DOUBLE,
+    "descripcion" CHAR(30),
+    "volvta" DOUBLE,
+    "facvta" DOUBLE
+);
+faked!
+timestamp: 2019-01-13T12:36:50.724620
+CREATE TABLE "precio"(
+    "nrocambio" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "hora" TIMESTAMP,
+    "newprice" DOUBLE,
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  ,
+    "on_line" CHAR(1),
+    "cemprod" INTEGER
+);
+faked!
+timestamp: 2019-01-13T12:36:50.730463
+CREATE TABLE "tanques"(
+    "nrotanque" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "volumen" DOUBLE UNIQUE,
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-01-13T12:36:50.738165
+CREATE TABLE "picos"(
+    "nropico" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "surtidor" INTEGER,
+    "manguera" INTEGER,
+    "tiposurtidor" CHAR(512),
+    "tanque" INTEGER REFERENCES "tanques" ("nrotanque") ON DELETE CASCADE  ,
+    "estado" CHAR(512),
+    "nesta" INTEGER,
+    "totalvolinicial" DOUBLE,
+    "totalvolfinal" DOUBLE,
+    "totalvoldif" DOUBLE
+);
+faked!
+timestamp: 2019-01-13T12:36:50.779861
+CREATE TABLE "turnos"(
+    "nroturno" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "inicio" TIMESTAMP,
+    "fin" TIMESTAMP,
+    "cerrado" CHAR(1),
+    "pico1volfinal" DOUBLE,
+    "pico2volfinal" DOUBLE,
+    "pico3volfinal" DOUBLE,
+    "pico4volfinal" DOUBLE,
+    "pico5volfinal" DOUBLE,
+    "pico6volfinal" DOUBLE,
+    "pico7volfinal" DOUBLE,
+    "pico8volfinal" DOUBLE,
+    "pico9volfinal" DOUBLE,
+    "pico10volfinal" DOUBLE,
+    "pico11volfinal" DOUBLE,
+    "pico12volfinal" DOUBLE,
+    "pico13volfinal" DOUBLE,
+    "pico14volfinal" DOUBLE,
+    "pico15volfinal" DOUBLE,
+    "pico16volfinal" DOUBLE,
+    "pico1vol" DOUBLE,
+    "pico2vol" DOUBLE,
+    "pico3vol" DOUBLE,
+    "pico4vol" DOUBLE,
+    "pico5vol" DOUBLE,
+    "pico6vol" DOUBLE,
+    "pico7vol" DOUBLE,
+    "pico8vol" DOUBLE,
+    "pico9vol" DOUBLE,
+    "pico10vol" DOUBLE,
+    "pico11vol" DOUBLE,
+    "pico12vol" DOUBLE,
+    "pico13vol" DOUBLE,
+    "pico14vol" DOUBLE,
+    "pico15vol" DOUBLE,
+    "pico16vol" DOUBLE,
+    "activo" INTEGER,
+    "pico1v" DOUBLE,
+    "pico2v" DOUBLE,
+    "pico3v" DOUBLE,
+    "pico4v" DOUBLE,
+    "pico5v" DOUBLE,
+    "pico6v" DOUBLE,
+    "pico7v" DOUBLE,
+    "pico8v" DOUBLE,
+    "pico9v" DOUBLE,
+    "pico10v" DOUBLE,
+    "pico11v" DOUBLE,
+    "pico12v" DOUBLE,
+    "pico13v" DOUBLE,
+    "pico14v" DOUBLE,
+    "pico15v" DOUBLE,
+    "pico16v" DOUBLE,
+    "pico17v" DOUBLE,
+    "pico18v" DOUBLE,
+    "pico19v" DOUBLE,
+    "pico20v" DOUBLE,
+    "pico21v" DOUBLE,
+    "pico22v" DOUBLE,
+    "pico23v" DOUBLE,
+    "pico24v" DOUBLE,
+    "pico25v" DOUBLE,
+    "pico26v" DOUBLE,
+    "pico27v" DOUBLE,
+    "pico28v" DOUBLE,
+    "pico29v" DOUBLE,
+    "pico30v" DOUBLE,
+    "pico31v" DOUBLE,
+    "pico32v" DOUBLE
+);
+faked!
+timestamp: 2019-01-13T12:36:50.837873
+CREATE TABLE "despachos"(
+    "nrodesp" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "horainicio" TIMESTAMP,
+    "horafin" TIMESTAMP,
+    "volinicial" DOUBLE,
+    "volfinal" DOUBLE,
+    "factinicial" DOUBLE,
+    "tipofact" CHAR(512),
+    "pico" INTEGER REFERENCES "picos" ("nropico") ON DELETE CASCADE  ,
+    "factfinal" DOUBLE,
+    "turno" INTEGER REFERENCES "turnos" ("nroturno") ON DELETE CASCADE  ,
+    "volvta" DOUBLE,
+    "facvta" DOUBLE,
+    "nrocem" INTEGER,
+    "pago" CHAR(512)
+);
+faked!
+timestamp: 2019-01-13T12:37:33.669714
+CREATE TABLE "auth_user"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "first_name" CHAR(128),
+    "last_name" CHAR(128),
+    "email" CHAR(512),
+    "password" CHAR(512),
+    "registration_key" CHAR(512),
+    "reset_password_key" CHAR(512),
+    "registration_id" CHAR(512)
+);
+faked!
+timestamp: 2019-01-13T12:37:33.679236
+CREATE TABLE "auth_group"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "role" CHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-01-13T12:37:33.683866
+CREATE TABLE "auth_membership"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-01-13T12:37:33.689702
+CREATE TABLE "auth_permission"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  ,
+    "name" CHAR(512),
+    "table_name" CHAR(512),
+    "record_id" INTEGER
+);
+faked!
+timestamp: 2019-01-13T12:37:33.696147
+CREATE TABLE "auth_event"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "time_stamp" TIMESTAMP,
+    "client_ip" CHAR(512),
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "origin" CHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-01-13T12:37:33.703057
+CREATE TABLE "auth_cas"(
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "created_on" TIMESTAMP,
+    "service" CHAR(512),
+    "ticket" CHAR(512),
+    "renew" CHAR(1)
+);
+faked!
+timestamp: 2019-01-13T12:37:33.710230
+CREATE TABLE "producto"(
+    "nroprod" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "preciocred" DOUBLE,
+    "preciocont" DOUBLE,
+    "descripcion" CHAR(30),
+    "volvta" DOUBLE,
+    "facvta" DOUBLE
+);
+faked!
+timestamp: 2019-01-13T12:37:33.716110
+CREATE TABLE "precio"(
+    "nrocambio" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "hora" TIMESTAMP,
+    "newprice" DOUBLE,
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  ,
+    "on_line" CHAR(1),
+    "cemprod" INTEGER
+);
+faked!
+timestamp: 2019-01-13T12:37:33.722528
+CREATE TABLE "tanques"(
+    "nrotanque" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "volumen" DOUBLE UNIQUE,
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-01-13T12:37:33.729602
+CREATE TABLE "picos"(
+    "nropico" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "surtidor" INTEGER,
+    "manguera" INTEGER,
+    "tiposurtidor" CHAR(512),
+    "tanque" INTEGER REFERENCES "tanques" ("nrotanque") ON DELETE CASCADE  ,
+    "estado" CHAR(512),
+    "nesta" INTEGER,
+    "totalvolinicial" DOUBLE,
+    "totalvolfinal" DOUBLE,
+    "totalvoldif" DOUBLE
+);
+faked!
+timestamp: 2019-01-13T12:37:33.758475
+CREATE TABLE "turnos"(
+    "nroturno" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "inicio" TIMESTAMP,
+    "fin" TIMESTAMP,
+    "cerrado" CHAR(1),
+    "pico1volfinal" DOUBLE,
+    "pico2volfinal" DOUBLE,
+    "pico3volfinal" DOUBLE,
+    "pico4volfinal" DOUBLE,
+    "pico5volfinal" DOUBLE,
+    "pico6volfinal" DOUBLE,
+    "pico7volfinal" DOUBLE,
+    "pico8volfinal" DOUBLE,
+    "pico9volfinal" DOUBLE,
+    "pico10volfinal" DOUBLE,
+    "pico11volfinal" DOUBLE,
+    "pico12volfinal" DOUBLE,
+    "pico13volfinal" DOUBLE,
+    "pico14volfinal" DOUBLE,
+    "pico15volfinal" DOUBLE,
+    "pico16volfinal" DOUBLE,
+    "pico1vol" DOUBLE,
+    "pico2vol" DOUBLE,
+    "pico3vol" DOUBLE,
+    "pico4vol" DOUBLE,
+    "pico5vol" DOUBLE,
+    "pico6vol" DOUBLE,
+    "pico7vol" DOUBLE,
+    "pico8vol" DOUBLE,
+    "pico9vol" DOUBLE,
+    "pico10vol" DOUBLE,
+    "pico11vol" DOUBLE,
+    "pico12vol" DOUBLE,
+    "pico13vol" DOUBLE,
+    "pico14vol" DOUBLE,
+    "pico15vol" DOUBLE,
+    "pico16vol" DOUBLE,
+    "activo" INTEGER,
+    "pico1v" DOUBLE,
+    "pico2v" DOUBLE,
+    "pico3v" DOUBLE,
+    "pico4v" DOUBLE,
+    "pico5v" DOUBLE,
+    "pico6v" DOUBLE,
+    "pico7v" DOUBLE,
+    "pico8v" DOUBLE,
+    "pico9v" DOUBLE,
+    "pico10v" DOUBLE,
+    "pico11v" DOUBLE,
+    "pico12v" DOUBLE,
+    "pico13v" DOUBLE,
+    "pico14v" DOUBLE,
+    "pico15v" DOUBLE,
+    "pico16v" DOUBLE,
+    "pico17v" DOUBLE,
+    "pico18v" DOUBLE,
+    "pico19v" DOUBLE,
+    "pico20v" DOUBLE,
+    "pico21v" DOUBLE,
+    "pico22v" DOUBLE,
+    "pico23v" DOUBLE,
+    "pico24v" DOUBLE,
+    "pico25v" DOUBLE,
+    "pico26v" DOUBLE,
+    "pico27v" DOUBLE,
+    "pico28v" DOUBLE,
+    "pico29v" DOUBLE,
+    "pico30v" DOUBLE,
+    "pico31v" DOUBLE,
+    "pico32v" DOUBLE
+);
+faked!
+timestamp: 2019-01-13T12:37:33.805260
+CREATE TABLE "despachos"(
+    "nrodesp" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "horainicio" TIMESTAMP,
+    "horafin" TIMESTAMP,
+    "volinicial" DOUBLE,
+    "volfinal" DOUBLE,
+    "factinicial" DOUBLE,
+    "tipofact" CHAR(512),
+    "pico" INTEGER REFERENCES "picos" ("nropico") ON DELETE CASCADE  ,
+    "factfinal" DOUBLE,
+    "turno" INTEGER REFERENCES "turnos" ("nroturno") ON DELETE CASCADE  ,
+    "volvta" DOUBLE,
+    "facvta" DOUBLE,
+    "nrocem" INTEGER,
+    "pago" CHAR(512)
+);
+faked!
+timestamp: 2019-06-03T15:00:50.916052
+CREATE TABLE "auth_user"(
+    "id" SERIAL PRIMARY KEY,
+    "first_name" VARCHAR(128),
+    "last_name" VARCHAR(128),
+    "email" VARCHAR(512),
+    "password" VARCHAR(512),
+    "registration_key" VARCHAR(512),
+    "reset_password_key" VARCHAR(512),
+    "registration_id" VARCHAR(512)
+);
+faked!
+timestamp: 2019-06-03T15:00:50.927166
+CREATE TABLE "auth_group"(
+    "id" SERIAL PRIMARY KEY,
+    "role" VARCHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-06-03T15:00:50.932519
+CREATE TABLE "auth_membership"(
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-06-03T15:00:50.937537
+CREATE TABLE "auth_permission"(
+    "id" SERIAL PRIMARY KEY,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  ,
+    "name" VARCHAR(512),
+    "table_name" VARCHAR(512),
+    "record_id" INTEGER
+);
+faked!
+timestamp: 2019-06-03T15:00:50.944679
+CREATE TABLE "auth_event"(
+    "id" SERIAL PRIMARY KEY,
+    "time_stamp" TIMESTAMP,
+    "client_ip" VARCHAR(512),
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "origin" VARCHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-06-03T15:00:50.952560
+CREATE TABLE "auth_cas"(
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "created_on" TIMESTAMP,
+    "service" VARCHAR(512),
+    "ticket" VARCHAR(512),
+    "renew" CHAR(1)
+);
+faked!
+timestamp: 2019-06-03T15:00:50.960053
+CREATE TABLE "producto"(
+    "nroprod" SERIAL PRIMARY KEY,
+    "preciocred" NUMERIC(15,2),
+    "preciocont" NUMERIC(15,2),
+    "descripcion" VARCHAR(30),
+    "volvta" NUMERIC(15,3),
+    "facvta" NUMERIC(15,3)
+);
+faked!
+timestamp: 2019-06-03T15:00:50.967107
+CREATE TABLE "precio"(
+    "nrocambio" SERIAL PRIMARY KEY,
+    "hora" TIMESTAMP,
+    "newprice" NUMERIC(15,2),
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  ,
+    "on_line" CHAR(1),
+    "cemprod" INTEGER
+);
+faked!
+timestamp: 2019-06-03T15:00:50.973824
+CREATE TABLE "tanques"(
+    "nrotanque" SERIAL PRIMARY KEY,
+    "volumen" FLOAT8 UNIQUE,
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-06-03T15:00:50.979035
+CREATE TABLE "picos"(
+    "nropico" SERIAL PRIMARY KEY,
+    "surtidor" INTEGER,
+    "manguera" INTEGER,
+    "tiposurtidor" VARCHAR(512),
+    "tanque" INTEGER REFERENCES "tanques" ("nrotanque") ON DELETE CASCADE  ,
+    "estado" VARCHAR(512),
+    "nesta" INTEGER,
+    "totalvolinicial" NUMERIC(15,3),
+    "totalvolfinal" NUMERIC(15,3),
+    "totalvoldif" NUMERIC(15,3)
+);
+faked!
+timestamp: 2019-06-03T15:00:51.003120
+CREATE TABLE "turnos"(
+    "nroturno" SERIAL PRIMARY KEY,
+    "inicio" TIMESTAMP,
+    "fin" TIMESTAMP,
+    "cerrado" CHAR(1),
+    "pico1volfinal" NUMERIC(15,3),
+    "pico2volfinal" NUMERIC(15,3),
+    "pico3volfinal" NUMERIC(15,3),
+    "pico4volfinal" NUMERIC(15,3),
+    "pico5volfinal" NUMERIC(15,3),
+    "pico6volfinal" NUMERIC(15,3),
+    "pico7volfinal" NUMERIC(15,3),
+    "pico8volfinal" NUMERIC(15,3),
+    "pico9volfinal" NUMERIC(15,3),
+    "pico10volfinal" NUMERIC(15,3),
+    "pico11volfinal" NUMERIC(15,3),
+    "pico12volfinal" NUMERIC(15,3),
+    "pico13volfinal" NUMERIC(15,3),
+    "pico14volfinal" NUMERIC(15,3),
+    "pico15volfinal" NUMERIC(15,3),
+    "pico16volfinal" NUMERIC(15,3),
+    "pico1vol" NUMERIC(15,3),
+    "pico2vol" NUMERIC(15,3),
+    "pico3vol" NUMERIC(15,3),
+    "pico4vol" NUMERIC(15,3),
+    "pico5vol" NUMERIC(15,3),
+    "pico6vol" NUMERIC(15,3),
+    "pico7vol" NUMERIC(15,3),
+    "pico8vol" NUMERIC(15,3),
+    "pico9vol" NUMERIC(15,3),
+    "pico10vol" NUMERIC(15,3),
+    "pico11vol" NUMERIC(15,3),
+    "pico12vol" NUMERIC(15,3),
+    "pico13vol" NUMERIC(15,3),
+    "pico14vol" NUMERIC(15,3),
+    "pico15vol" NUMERIC(15,3),
+    "pico16vol" NUMERIC(15,3),
+    "activo" INTEGER,
+    "pico1v" NUMERIC(15,3),
+    "pico2v" NUMERIC(15,3),
+    "pico3v" NUMERIC(15,3),
+    "pico4v" NUMERIC(15,3),
+    "pico5v" NUMERIC(15,3),
+    "pico6v" NUMERIC(15,3),
+    "pico7v" NUMERIC(15,3),
+    "pico8v" NUMERIC(15,3),
+    "pico9v" NUMERIC(15,3),
+    "pico10v" NUMERIC(15,3),
+    "pico11v" NUMERIC(15,3),
+    "pico12v" NUMERIC(15,3),
+    "pico13v" NUMERIC(15,3),
+    "pico14v" NUMERIC(15,3),
+    "pico15v" NUMERIC(15,3),
+    "pico16v" NUMERIC(15,3),
+    "pico17v" NUMERIC(15,3),
+    "pico18v" NUMERIC(15,3),
+    "pico19v" NUMERIC(15,3),
+    "pico20v" NUMERIC(15,3),
+    "pico21v" NUMERIC(15,3),
+    "pico22v" NUMERIC(15,3),
+    "pico23v" NUMERIC(15,3),
+    "pico24v" NUMERIC(15,3),
+    "pico25v" NUMERIC(15,3),
+    "pico26v" NUMERIC(15,3),
+    "pico27v" NUMERIC(15,3),
+    "pico28v" NUMERIC(15,3),
+    "pico29v" NUMERIC(15,3),
+    "pico30v" NUMERIC(15,3),
+    "pico31v" NUMERIC(15,3),
+    "pico32v" NUMERIC(15,3)
+);
+faked!
+timestamp: 2019-06-03T15:00:51.053690
+CREATE TABLE "despachos"(
+    "nrodesp" SERIAL PRIMARY KEY,
+    "horainicio" TIMESTAMP,
+    "horafin" TIMESTAMP,
+    "volinicial" NUMERIC(15,3),
+    "volfinal" NUMERIC(15,3),
+    "factinicial" NUMERIC(15,2),
+    "tipofact" VARCHAR(512),
+    "pico" INTEGER REFERENCES "picos" ("nropico") ON DELETE CASCADE  ,
+    "factfinal" NUMERIC(15,2),
+    "turno" INTEGER REFERENCES "turnos" ("nroturno") ON DELETE CASCADE  ,
+    "volvta" NUMERIC(15,3),
+    "facvta" NUMERIC(15,2),
+    "nrocem" INTEGER,
+    "pago" VARCHAR(512)
+);
+faked!
+timestamp: 2019-06-07T10:24:23.745018
+CREATE TABLE "auth_user"(
+    "id" SERIAL PRIMARY KEY,
+    "first_name" VARCHAR(128),
+    "last_name" VARCHAR(128),
+    "email" VARCHAR(512),
+    "password" VARCHAR(512),
+    "registration_key" VARCHAR(512),
+    "reset_password_key" VARCHAR(512),
+    "registration_id" VARCHAR(512)
+);
+faked!
+timestamp: 2019-06-07T10:24:23.759951
+CREATE TABLE "auth_group"(
+    "id" SERIAL PRIMARY KEY,
+    "role" VARCHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-06-07T10:24:23.765630
+CREATE TABLE "auth_membership"(
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-06-07T10:24:23.771754
+CREATE TABLE "auth_permission"(
+    "id" SERIAL PRIMARY KEY,
+    "group_id" INTEGER REFERENCES "auth_group" ("id") ON DELETE CASCADE  ,
+    "name" VARCHAR(512),
+    "table_name" VARCHAR(512),
+    "record_id" INTEGER
+);
+faked!
+timestamp: 2019-06-07T10:24:23.780145
+CREATE TABLE "auth_event"(
+    "id" SERIAL PRIMARY KEY,
+    "time_stamp" TIMESTAMP,
+    "client_ip" VARCHAR(512),
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "origin" VARCHAR(512),
+    "description" TEXT
+);
+faked!
+timestamp: 2019-06-07T10:24:23.789200
+CREATE TABLE "auth_cas"(
+    "id" SERIAL PRIMARY KEY,
+    "user_id" INTEGER REFERENCES "auth_user" ("id") ON DELETE CASCADE  ,
+    "created_on" TIMESTAMP,
+    "service" VARCHAR(512),
+    "ticket" VARCHAR(512),
+    "renew" CHAR(1)
+);
+faked!
+timestamp: 2019-06-07T10:24:23.800695
+CREATE TABLE "producto"(
+    "nroprod" SERIAL PRIMARY KEY,
+    "preciocred" NUMERIC(15,2),
+    "preciocont" NUMERIC(15,2),
+    "descripcion" VARCHAR(30),
+    "volvta" NUMERIC(15,3),
+    "facvta" NUMERIC(15,3)
+);
+faked!
+timestamp: 2019-06-07T10:24:23.808860
+CREATE TABLE "precio"(
+    "nrocambio" SERIAL PRIMARY KEY,
+    "hora" TIMESTAMP,
+    "newprice" NUMERIC(15,2),
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  ,
+    "on_line" CHAR(1),
+    "cemprod" INTEGER
+);
+faked!
+timestamp: 2019-06-07T10:24:23.817186
+CREATE TABLE "tanques"(
+    "nrotanque" SERIAL PRIMARY KEY,
+    "volumen" FLOAT8 UNIQUE,
+    "combustible" INTEGER REFERENCES "producto" ("nroprod") ON DELETE CASCADE  
+);
+faked!
+timestamp: 2019-06-07T10:24:23.823969
+CREATE TABLE "picos"(
+    "nropico" SERIAL PRIMARY KEY,
+    "surtidor" INTEGER,
+    "manguera" INTEGER,
+    "tiposurtidor" VARCHAR(512),
+    "tanque" INTEGER REFERENCES "tanques" ("nrotanque") ON DELETE CASCADE  ,
+    "estado" VARCHAR(512),
+    "nesta" INTEGER,
+    "totalvolinicial" NUMERIC(15,3),
+    "totalvolfinal" NUMERIC(15,3),
+    "totalvoldif" NUMERIC(15,3)
+);
+faked!
+timestamp: 2019-06-07T10:24:23.852811
+CREATE TABLE "turnos"(
+    "nroturno" SERIAL PRIMARY KEY,
+    "inicio" TIMESTAMP,
+    "fin" TIMESTAMP,
+    "cerrado" CHAR(1),
+    "pico1volfinal" NUMERIC(15,3),
+    "pico2volfinal" NUMERIC(15,3),
+    "pico3volfinal" NUMERIC(15,3),
+    "pico4volfinal" NUMERIC(15,3),
+    "pico5volfinal" NUMERIC(15,3),
+    "pico6volfinal" NUMERIC(15,3),
+    "pico7volfinal" NUMERIC(15,3),
+    "pico8volfinal" NUMERIC(15,3),
+    "pico9volfinal" NUMERIC(15,3),
+    "pico10volfinal" NUMERIC(15,3),
+    "pico11volfinal" NUMERIC(15,3),
+    "pico12volfinal" NUMERIC(15,3),
+    "pico13volfinal" NUMERIC(15,3),
+    "pico14volfinal" NUMERIC(15,3),
+    "pico15volfinal" NUMERIC(15,3),
+    "pico16volfinal" NUMERIC(15,3),
+    "pico1vol" NUMERIC(15,3),
+    "pico2vol" NUMERIC(15,3),
+    "pico3vol" NUMERIC(15,3),
+    "pico4vol" NUMERIC(15,3),
+    "pico5vol" NUMERIC(15,3),
+    "pico6vol" NUMERIC(15,3),
+    "pico7vol" NUMERIC(15,3),
+    "pico8vol" NUMERIC(15,3),
+    "pico9vol" NUMERIC(15,3),
+    "pico10vol" NUMERIC(15,3),
+    "pico11vol" NUMERIC(15,3),
+    "pico12vol" NUMERIC(15,3),
+    "pico13vol" NUMERIC(15,3),
+    "pico14vol" NUMERIC(15,3),
+    "pico15vol" NUMERIC(15,3),
+    "pico16vol" NUMERIC(15,3),
+    "activo" INTEGER,
+    "pico1v" NUMERIC(15,3),
+    "pico2v" NUMERIC(15,3),
+    "pico3v" NUMERIC(15,3),
+    "pico4v" NUMERIC(15,3),
+    "pico5v" NUMERIC(15,3),
+    "pico6v" NUMERIC(15,3),
+    "pico7v" NUMERIC(15,3),
+    "pico8v" NUMERIC(15,3),
+    "pico9v" NUMERIC(15,3),
+    "pico10v" NUMERIC(15,3),
+    "pico11v" NUMERIC(15,3),
+    "pico12v" NUMERIC(15,3),
+    "pico13v" NUMERIC(15,3),
+    "pico14v" NUMERIC(15,3),
+    "pico15v" NUMERIC(15,3),
+    "pico16v" NUMERIC(15,3),
+    "pico17v" NUMERIC(15,3),
+    "pico18v" NUMERIC(15,3),
+    "pico19v" NUMERIC(15,3),
+    "pico20v" NUMERIC(15,3),
+    "pico21v" NUMERIC(15,3),
+    "pico22v" NUMERIC(15,3),
+    "pico23v" NUMERIC(15,3),
+    "pico24v" NUMERIC(15,3),
+    "pico25v" NUMERIC(15,3),
+    "pico26v" NUMERIC(15,3),
+    "pico27v" NUMERIC(15,3),
+    "pico28v" NUMERIC(15,3),
+    "pico29v" NUMERIC(15,3),
+    "pico30v" NUMERIC(15,3),
+    "pico31v" NUMERIC(15,3),
+    "pico32v" NUMERIC(15,3)
+);
+faked!
+timestamp: 2019-06-07T10:24:23.911021
+CREATE TABLE "despachos"(
+    "nrodesp" SERIAL PRIMARY KEY,
+    "horainicio" TIMESTAMP,
+    "horafin" TIMESTAMP,
+    "volinicial" NUMERIC(15,3),
+    "volfinal" NUMERIC(15,3),
+    "factinicial" NUMERIC(15,2),
+    "tipofact" VARCHAR(512),
+    "pico" INTEGER REFERENCES "picos" ("nropico") ON DELETE CASCADE  ,
+    "factfinal" NUMERIC(15,2),
+    "turno" INTEGER REFERENCES "turnos" ("nroturno") ON DELETE CASCADE  ,
+    "volvta" NUMERIC(15,3),
+    "facvta" NUMERIC(15,2),
+    "nrocem" INTEGER,
+    "pago" VARCHAR(512)
+);
+faked!

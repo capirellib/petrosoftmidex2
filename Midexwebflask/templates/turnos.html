@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+
+
+<div class="row">
+
+ <div  class="col-md-10">
+  <table id="buscar2" class="buscar2 table table-striped table-hover table-bordered table-sm bg-white">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">Turno Nro</th>
+        <th scope="col">Inicio</th>
+        <th scope="col">Final</th>
+        <th scope="col">Cerrado</th>
+        <th scope="col">Opciones</th>
+        <!--<th><a href="#"><i class="fas fa-book"></i></a></th>-->
+      </tr>
+    </thead>
+    <tbody>
+        {% for tur in tturno %}
+            
+            <tr>
+                <td align='center'>{{tur.nroturno}}</td>
+                <td>{{tur.inicio}}</td>
+                <td>{{tur.fin}}</td>  
+                <td>
+                    {% if tur.cerrado == False %}
+                          
+                            <i class="fas fa-folder-open"></i>
+                    {% else %}
+                            <i class="fas fa-folder"></i>
+                    {% endif %}
+                </td>
+                <td><a href="#" class="btn btn-primary">Aforadores</a>
+                  <a href="#" class="btn btn-primary">Despachos</a></td>
+                
+            </tr>
+        {% endfor %}
+
+      
+    </tbody>
+  
+  </table>
+
+
+
+ </div>
+
+
+  {% block detdespa  %} {% endblock %}
+
+ 
+
+</div>
+
+
+
+
+
+  {% block final %}{% endblock %}
+
+{% endblock %}
