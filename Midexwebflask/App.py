@@ -10,7 +10,7 @@ from flaskwebgui import FlaskUI #get the FlaskUI class
 #from multiprocessing import Process, freeze_support
 
 
-#Inicializa Dbf
+#Inicializa Dbf 
 db = db.db()
 
 # initializations
