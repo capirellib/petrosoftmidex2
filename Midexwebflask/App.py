@@ -12,6 +12,7 @@ from flaskwebgui import FlaskUI #get the FlaskUI class
 
 #Inicializa Dbf 
 db = db.db()
+###esto es lo que deberias revisar
 
 # initializations
 app = Flask(__name__)
